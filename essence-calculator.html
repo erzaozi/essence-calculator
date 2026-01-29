@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基质刷取计算器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4, #fad0c4, #a1c4fd);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        a {
+            text-decoration: none;
+            color: #6ab7ff;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .weapons-section {
+            flex: 2;
+            min-width: 300px;
+            background: rgba(20, 25, 45, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .selected-section {
+            flex: 2;
+            min-width: 300px;
+            background: rgba(20, 25, 45, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .results-section {
+            flex: 2;
+            min-width: 300px;
+            background: rgba(20, 25, 45, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #6ab7ff;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(106, 183, 255, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .filter-group,
+        .sort-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(30, 35, 55, 0.9);
+            border: 1px solid rgba(106, 183, 255, 0.3);
+            border-radius: 8px;
+            color: #f0f0f0;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: #6ab7ff;
+            box-shadow: 0 0 0 2px rgba(106, 183, 255, 0.2);
+        }
+
+        .weapons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* 自定义滚动条 */
+        .weapons-grid::-webkit-scrollbar,
+        .selected-list::-webkit-scrollbar,
+        .results-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .weapons-grid::-webkit-scrollbar-track,
+        .selected-list::-webkit-scrollbar-track,
+        .results-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+
+        .weapons-grid::-webkit-scrollbar-thumb,
+        .selected-list::-webkit-scrollbar-thumb,
+        .results-container::-webkit-scrollbar-thumb {
+            background: rgba(106, 183, 255, 0.5);
+            border-radius: 3px;
+        }
+
+        .weapons-grid::-webkit-scrollbar-thumb:hover,
+        .selected-list::-webkit-scrollbar-thumb:hover,
+        .results-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(106, 183, 255, 0.7);
+        }
+
+        /* 隐藏滚动条但保留功能 */
+        .selected-list,
+        .results-container {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: thin;
+            /* Firefox */
+            scrollbar-color: rgba(106, 183, 255, 0.5) rgba(0, 0, 0, 0.1);
+            /* Firefox */
+        }
+
+        .weapon-card {
+            background: rgba(30, 35, 55, 0.9);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        /* 星级边框颜色 */
+        .weapon-card.rank-6 {
+            border-color: #ff4444;
+        }
+
+        .weapon-card.rank-5 {
+            border-color: #ffcc00;
+        }
+
+        .weapon-card.rank-4 {
+            border-color: #aa66ff;
+        }
+
+        .weapon-card.rank-3 {
+            border-color: #66aaff;
+        }
+
+        .weapon-card.selected {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .weapon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .weapon-image {
+            height: 160px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .weapon-rank {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+
+        .rank-6 {
+            background: linear-gradient(135deg, #ffd700, #ff9800);
+            color: #000;
+        }
+
+        .rank-5 {
+            background: linear-gradient(135deg, #e91e63, #9c27b0);
+        }
+
+        .rank-4 {
+            background: linear-gradient(135deg, #2196F3, #3F51B5);
+        }
+
+        .rank-3 {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+        }
+
+        .weapon-info {
+            padding: 15px;
+        }
+
+        .weapon-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .weapon-attributes {
+            font-size: 0.9rem;
+            color: #ccc;
+            line-height: 1.5;
+        }
+
+        .weapon-attributes span {
+            display: inline-block;
+            background: rgba(106, 183, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .selected-list {
+            min-height: 200px;
+            max-height: 800px;
+            /* 限制高度，防止拉到最底 */
+            overflow-y: auto;
+            padding-right: 5px;
+            margin-bottom: 20px;
+        }
+
+        .selected-item {
+            background: rgba(30, 35, 55, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        /* 已选武器星级边框 */
+        .selected-item.rank-6 {
+            border-left: 4px solid #ff4444;
+        }
+
+        .selected-item.rank-5 {
+            border-left: 4px solid #ffcc00;
+        }
+
+        .selected-item.rank-4 {
+            border-left: 4px solid #aa66ff;
+        }
+
+        .selected-item.rank-3 {
+            border-left: 4px solid #66aaff;
+        }
+
+        .selected-item:hover {
+            background: rgba(40, 45, 65, 0.9);
+        }
+
+        .selected-item-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            margin-right: 15px;
+        }
+
+        .selected-item-info {
+            flex: 1;
+        }
+
+        .selected-item-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .selected-item-rank {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .remove-btn {
+            background: #ff5252;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .remove-btn:hover {
+            background: #ff0000;
+            transform: scale(1.1);
+        }
+
+        .selected-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .clear-btn {
+            flex: 1;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .clear-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 82, 82, 0.4);
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .calculate-btn:disabled {
+            background: linear-gradient(135deg, #666, #555);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .counter {
+            background: rgba(106, 183, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+        }
+
+        .empty-selection {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+            font-size: 1.1rem;
+        }
+
+        .empty-selection i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #444;
+        }
+
+        .results-container {
+            min-height: 400px;
+            max-height: 800px;
+            /* 限制高度，防止拉到最底 */
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #777;
+            font-size: 1.1rem;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ff5252;
+        }
+
+        .solution {
+            background: rgba(30, 35, 55, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #6ab7ff;
+        }
+
+        .solution-title {
+            font-size: 1.4rem;
+            color: #6ab7ff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(106, 183, 255, 0.2);
+        }
+
+        .solution-content {
+            padding: 10px 0;
+        }
+
+        .solution-attr {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .solution-attr-title {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .solution-weapons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .solution-weapon {
+            background: rgba(106, 183, 255, 0.1);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .solution-weapon img {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .solution-locations {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(106, 183, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .solution-location {
+            padding: 8px 12px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .weapons-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            .weapons-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .filter-group,
+            .sort-group {
+                min-width: 100%;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: rgba(30, 35, 55, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #4CAF50;
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.5s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            border-left-color: #ff5252;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-crosshairs"></i> 基质刷取计算器</h1>
+            <p>
+                数据来源于<a href="https://wiki.skland.com/endfield/catalog?typeMainId=1&typeSubId=2" target="_blank">
+                    森空岛官方WIKI</a>
+            </p>
+            <p>
+                如有数据错误，请提交issue<a href="https://github.com/erzaozi/essence-calculator/issues" target="_blank">
+                    GitHub</a>
+            </p>
+        </header>
+
+        <div class="main-content">
+            <section class="weapons-section">
+                <div class="section-title">
+                    <span>武器库</span>
+                    <div class="counter">共 <span id="total-weapons">0</span> 件武器</div>
+                </div>
+
+                <div class="controls">
+                    <div class="filter-group">
+                        <label for="rank-filter"><i class="fas fa-star"></i> 按星级筛选</label>
+                        <select id="rank-filter">
+                            <option value="all">全部星级</option>
+                            <option value="6">6星</option>
+                            <option value="5">5星</option>
+                            <option value="4">4星</option>
+                            <option value="3">3星</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="attribute-filter"><i class="fas fa-bolt"></i> 按属性筛选</label>
+                        <select id="attribute-filter">
+                            <option value="all">全部属性</option>
+                            <option value="意志提升">意志提升</option>
+                            <option value="智识提升">智识提升</option>
+                            <option value="主能力提升">主能力提升</option>
+                            <option value="力量提升">力量提升</option>
+                            <option value="敏捷提升">敏捷提升</option>
+                        </select>
+                    </div>
+
+                    <div class="sort-group">
+                        <label for="sort-by"><i class="fas fa-sort"></i> 排序方式</label>
+                        <select id="sort-by">
+                            <option value="default">默认顺序</option>
+                            <option value="name">按名称排序</option>
+                            <option value="rank">按星级排序</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="search-weapon"><i class="fas fa-search"></i> 搜索武器</label>
+                        <input type="text" id="search-weapon" placeholder="输入武器名称...">
+                    </div>
+                </div>
+
+                <div class="weapons-grid" id="weapons-container">
+                    <!-- 武器卡片将通过JavaScript动态生成 -->
+                </div>
+            </section>
+
+            <section class="selected-section">
+                <div class="section-title">
+                    <span>已选武器</span>
+                    <div class="counter">已选择 <span id="selected-count">0</span> 件</div>
+                </div>
+
+                <div class="selected-buttons">
+                    <button class="clear-btn" id="clear-all">
+                        <i class="fas fa-trash-alt"></i> 清空选择
+                    </button>
+                </div>
+
+                <div class="selected-list" id="selected-container">
+                    <!-- 已选武器将通过JavaScript动态生成 -->
+                    <div class="empty-selection" id="empty-selection">
+                        <i class="fas fa-inbox"></i>
+                        <p>尚未选择任何武器</p>
+                        <p>点击左侧武器卡片以添加到此处</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="results-section">
+                <div class="section-title">
+                    <span>计算结果</span>
+                    <div class="counter">方案数: <span id="solutions-count">0</span></div>
+                </div>
+
+                <button class="calculate-btn" id="calculate-btn" disabled>
+                    <i class="fas fa-calculator"></i> 计算方案
+                </button>
+
+                <div class="results-container" id="results-container">
+                    <div class="no-results" id="no-results">
+                        <i class="fas fa-calculator"></i>
+                        <p>暂无计算结果</p>
+                        <p>选择武器后点击"计算方案"按钮</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <div id="notification-text">操作成功</div>
+    </div>
+
+    <script>
+        // 武器数据
+        const weaponsData = [
+            {
+                "name": "骑士精神",
+                "image": "./weapon_images/骑士精神.png",
+                "rank": 6,
+                "attr_1": "意志提升",
+                "attr_2": "生命提升",
+                "attr_3": "医疗"
+            },
+            {
+                "name": "遗忘",
+                "image": "./weapon_images/遗忘.png",
+                "rank": 6,
+                "attr_1": "智识提升",
+                "attr_2": "法术提升",
+                "attr_3": "夜幕"
+            },
+            {
+                "name": "爆破单元",
+                "image": "./weapon_images/爆破单元.png",
+                "rank": 6,
+                "attr_1": "主能力提升",
+                "attr_2": "源石技艺强度提升",
+                "attr_3": "迸发"
+            },
+            {
+                "name": "作品：蚀象",
+                "image": "./weapon_images/作品：蚀象.png",
+                "rank": 6,
+                "attr_1": "意志提升",
+                "attr_2": "自然伤害提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "沧溟星梦",
+                "image": "./weapon_images/沧溟星梦.png",
+                "rank": 6,
+                "attr_1": "智识提升",
+                "attr_2": "治疗效率提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "使命必达",
+                "image": "./weapon_images/使命必达.png",
+                "rank": 6,
+                "attr_1": "意志提升",
+                "attr_2": "终结技充能效率提升",
+                "attr_3": "追袭"
+            },
+            {
+                "name": "O.B.J.术识",
+                "image": "./weapon_images/O.B.J.术识.png",
+                "rank": 5,
+                "attr_1": "智识提升",
+                "attr_2": "源石技艺强度提升",
+                "attr_3": "追袭"
+            },
+            {
+                "name": "布道自由",
+                "image": "./weapon_images/布道自由.png",
+                "rank": 5,
+                "attr_1": "意志提升",
+                "attr_2": "治疗效率提升",
+                "attr_3": "医疗"
+            },
+            {
+                "name": "迷失荒野",
+                "image": "./weapon_images/迷失荒野.png",
+                "rank": 5,
+                "attr_1": "智识提升",
+                "attr_2": "电磁伤害提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "莫奈何",
+                "image": "./weapon_images/莫奈何.png",
+                "rank": 5,
+                "attr_1": "意志提升",
+                "attr_2": "终结技充能效率提升",
+                "attr_3": "昂扬"
+            },
+            {
+                "name": "悼亡诗",
+                "image": "./weapon_images/悼亡诗.png",
+                "rank": 5,
+                "attr_1": "智识提升",
+                "attr_2": "攻击提升",
+                "attr_3": "夜幕"
+            },
+            {
+                "name": "荧光雷羽",
+                "image": "./weapon_images/荧光雷羽.png",
+                "rank": 4,
+                "attr_1": "意志提升",
+                "attr_2": "攻击提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "全自动骇新星",
+                "image": "./weapon_images/全自动骇新星.png",
+                "rank": 4,
+                "attr_1": "智识提升",
+                "attr_2": "法术提升",
+                "attr_3": "昂扬"
+            },
+            {
+                "name": "吉米尼12",
+                "image": "./weapon_images/吉米尼12.png",
+                "rank": 3,
+                "attr_1": "主能力提升",
+                "attr_2": "",
+                "attr_3": "强攻"
+            },
+            {
+                "name": "同类相食",
+                "image": "./weapon_images/同类相食.png",
+                "rank": 6,
+                "attr_1": "主能力提升",
+                "attr_2": "法术提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "楔子",
+                "image": "./weapon_images/楔子.png",
+                "rank": 6,
+                "attr_1": "主能力提升",
+                "attr_2": "暴击率提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "领航者",
+                "image": "./weapon_images/领航者.png",
+                "rank": 6,
+                "attr_1": "主能力提升",
+                "attr_2": "终结技充能效率提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "艺术暴君",
+                "image": "./weapon_images/艺术暴君.png",
+                "rank": 6,
+                "attr_1": "智识提升",
+                "attr_2": "暴击率提升",
+                "attr_3": "切骨"
+            },
+            {
+                "name": "理性告别",
+                "image": "./weapon_images/理性告别.png",
+                "rank": 5,
+                "attr_1": "力量提升",
+                "attr_2": "灼热伤害提升",
+                "attr_3": "追袭"
+            },
+            {
+                "name": "O.B.J.迅极",
+                "image": "./weapon_images/O.B.J.迅极.png",
+                "rank": 5,
+                "attr_1": "敏捷提升",
+                "attr_2": "终结技充能效率提升",
+                "attr_3": "迸发"
+            },
+            {
+                "name": "作品：众生",
+                "image": "./weapon_images/作品：众生.png",
+                "rank": 5,
+                "attr_1": "敏捷提升",
+                "attr_2": "法术提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "长路",
+                "image": "./weapon_images/长路.png",
+                "rank": 4,
+                "attr_1": "力量提升",
+                "attr_2": "法术提升",
+                "attr_3": "追袭"
+            },
+            {
+                "name": "呼啸守卫",
+                "image": "./weapon_images/呼啸守卫.png",
+                "rank": 4,
+                "attr_1": "智识提升",
+                "attr_2": "攻击提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "佩科5",
+                "image": "./weapon_images/佩科5.png",
+                "rank": 3,
+                "attr_1": "主能力提升",
+                "attr_2": "",
+                "attr_3": "强攻"
+            },
+            {
+                "name": "J.E.T.",
+                "image": "./weapon_images/J.E.T..png",
+                "rank": 6,
+                "attr_1": "意志提升",
+                "attr_2": "攻击提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "骁勇",
+                "image": "./weapon_images/骁勇.png",
+                "rank": 6,
+                "attr_1": "敏捷提升",
+                "attr_2": "物理伤害提升",
+                "attr_3": "巧技"
+            },
+            {
+                "name": "负山",
+                "image": "./weapon_images/负山.png",
+                "rank": 6,
+                "attr_1": "敏捷提升",
+                "attr_2": "物理伤害提升",
+                "attr_3": "效益"
+            },
+            {
+                "name": "向心之引",
+                "image": "./weapon_images/向心之引.png",
+                "rank": 5,
+                "attr_1": "意志提升",
+                "attr_2": "电磁伤害提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "O.B.J.尖峰",
+                "image": "./weapon_images/O.B.J.尖峰.png",
+                "rank": 5,
+                "attr_1": "意志提升",
+                "attr_2": "物理伤害提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "嵌合正义",
+                "image": "./weapon_images/嵌合正义.png",
+                "rank": 5,
+                "attr_1": "力量提升",
+                "attr_2": "终结技充能效率提升",
+                "attr_3": "残暴"
+            },
+            {
+                "name": "天使杀手",
+                "image": "./weapon_images/天使杀手.png",
+                "rank": 4,
+                "attr_1": "意志提升",
+                "attr_2": "法术提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "寻路者道标",
+                "image": "./weapon_images/寻路者道标.png",
+                "rank": 4,
+                "attr_1": "敏捷提升",
+                "attr_2": "攻击提升",
+                "attr_3": "昂扬"
+            },
+            {
+                "name": "奥佩罗77",
+                "image": "./weapon_images/奥佩罗77.png",
+                "rank": 3,
+                "attr_1": "主能力提升",
+                "attr_2": "",
+                "attr_3": "强攻"
+            },
+            {
+                "name": "破碎君王",
+                "image": "./weapon_images/破碎君王.png",
+                "rank": 6,
+                "attr_1": "力量提升",
+                "attr_2": "攻击提升",
+                "attr_3": "粉碎"
+            },
+            {
+                "name": "昔日精品",
+                "image": "./weapon_images/昔日精品.png",
+                "rank": 6,
+                "attr_1": "意志提升",
+                "attr_2": "生命提升",
+                "attr_3": "效益"
+            },
+            {
+                "name": "典范",
+                "image": "./weapon_images/典范.png",
+                "rank": 6,
+                "attr_1": "主能力提升",
+                "attr_2": "攻击提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "赫拉芬格",
+                "image": "./weapon_images/赫拉芬格.png",
+                "rank": 6,
+                "attr_1": "力量提升",
+                "attr_2": "攻击提升",
+                "attr_3": "迸发"
+            },
+            {
+                "name": "大雷斑",
+                "image": "./weapon_images/大雷斑.png",
+                "rank": 6,
+                "attr_1": "力量提升",
+                "attr_2": "生命提升",
+                "attr_3": "医疗"
+            },
+            {
+                "name": "O.B.J.重荷",
+                "image": "./weapon_images/O.B.J.重荷.png",
+                "rank": 5,
+                "attr_1": "力量提升",
+                "attr_2": "生命提升",
+                "attr_3": "效益"
+            },
+            {
+                "name": "终点之声",
+                "image": "./weapon_images/终点之声.png",
+                "rank": 5,
+                "attr_1": "力量提升",
+                "attr_2": "生命提升",
+                "attr_3": "医疗"
+            },
+            {
+                "name": "古渠",
+                "image": "./weapon_images/古渠.png",
+                "rank": 5,
+                "attr_1": "力量提升",
+                "attr_2": "源石技艺强度提升",
+                "attr_3": "残暴"
+            },
+            {
+                "name": "探骊",
+                "image": "./weapon_images/探骊.png",
+                "rank": 5,
+                "attr_1": "力量提升",
+                "attr_2": "终结技充能效率提升",
+                "attr_3": "迸发"
+            },
+            {
+                "name": "淬火者",
+                "image": "./weapon_images/淬火者.png",
+                "rank": 4,
+                "attr_1": "意志提升",
+                "attr_2": "生命提升",
+                "attr_3": "粉碎"
+            },
+            {
+                "name": "工业零点一",
+                "image": "./weapon_images/工业零点一.png",
+                "rank": 4,
+                "attr_1": "力量提升",
+                "attr_2": "攻击提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "达尔霍夫7",
+                "image": "./weapon_images/达尔霍夫7.png",
+                "rank": 3,
+                "attr_1": "主能力提升",
+                "attr_2": "",
+                "attr_3": "强攻"
+            },
+            {
+                "name": "白夜新星",
+                "image": "./weapon_images/白夜新星.png",
+                "rank": 6,
+                "attr_1": "智识提升",
+                "attr_2": "源石技艺强度提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "显赫声名",
+                "image": "./weapon_images/显赫声名.png",
+                "rank": 6,
+                "attr_1": "敏捷提升",
+                "attr_2": "物理伤害提升",
+                "attr_3": "残暴"
+            },
+            {
+                "name": "热熔切割器",
+                "image": "./weapon_images/热熔切割器.png",
+                "rank": 6,
+                "attr_1": "意志提升",
+                "attr_2": "攻击提升",
+                "attr_3": "流转"
+            },
+            {
+                "name": "扶摇",
+                "image": "./weapon_images/扶摇.png",
+                "rank": 6,
+                "attr_1": "主能力提升",
+                "attr_2": "暴击率提升",
+                "attr_3": "夜幕"
+            },
+            {
+                "name": "黯色火炬",
+                "image": "./weapon_images/黯色火炬.png",
+                "rank": 6,
+                "attr_1": "智识提升",
+                "attr_2": "灼热伤害提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "熔铸火焰",
+                "image": "./weapon_images/熔铸火焰.png",
+                "rank": 6,
+                "attr_1": "智识提升",
+                "attr_2": "攻击提升",
+                "attr_3": "夜幕"
+            },
+            {
+                "name": "不知归",
+                "image": "./weapon_images/不知归.png",
+                "rank": 6,
+                "attr_1": "意志提升",
+                "attr_2": "攻击提升",
+                "attr_3": "流转"
+            },
+            {
+                "name": "宏愿",
+                "image": "./weapon_images/宏愿.png",
+                "rank": 6,
+                "attr_1": "敏捷提升",
+                "attr_2": "攻击提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "仰止",
+                "image": "./weapon_images/仰止.png",
+                "rank": 5,
+                "attr_1": "敏捷提升",
+                "attr_2": "物理伤害提升",
+                "attr_3": "夜幕"
+            },
+            {
+                "name": "O.B.J.轻芒",
+                "image": "./weapon_images/O.B.J.轻芒.png",
+                "rank": 5,
+                "attr_1": "敏捷提升",
+                "attr_2": "攻击提升",
+                "attr_3": "流转"
+            },
+            {
+                "name": "十二问",
+                "image": "./weapon_images/十二问.png",
+                "rank": 5,
+                "attr_1": "敏捷提升",
+                "attr_2": "攻击提升",
+                "attr_3": "附术"
+            },
+            {
+                "name": "逐鳞3.0",
+                "image": "./weapon_images/逐鳞3.0.png",
+                "rank": 5,
+                "attr_1": "力量提升",
+                "attr_2": "寒冷伤害提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "坚城铸造者",
+                "image": "./weapon_images/坚城铸造者.png",
+                "rank": 5,
+                "attr_1": "智识提升",
+                "attr_2": "终结技充能效率提升",
+                "attr_3": "昂扬"
+            },
+            {
+                "name": "钢铁余音",
+                "image": "./weapon_images/钢铁余音.png",
+                "rank": 5,
+                "attr_1": "敏捷提升",
+                "attr_2": "物理伤害提升",
+                "attr_3": "巧技"
+            },
+            {
+                "name": "浪潮",
+                "image": "./weapon_images/浪潮.png",
+                "rank": 4,
+                "attr_1": "智识提升",
+                "attr_2": "攻击提升",
+                "attr_3": "追袭"
+            },
+            {
+                "name": "应急手段",
+                "image": "./weapon_images/应急手段.png",
+                "rank": 4,
+                "attr_1": "敏捷提升",
+                "attr_2": "物理伤害提升",
+                "attr_3": "压制"
+            },
+            {
+                "name": "塔尔11",
+                "image": "./weapon_images/塔尔11.png",
+                "rank": 3,
+                "attr_1": "主能力提升",
+                "attr_2": "",
+                "attr_3": "强攻"
+            }
+        ]
+
+        // 刷取地点数据
+        const locationsData = [
+            {
+                "location": "重度能量淤积点·枢纽区",
+                "attr_1": [
+                    "敏捷提升",
+                    "力量提升",
+                    "意志提升",
+                    "智识提升",
+                    "主能力提升"
+                ],
+                "attr_2": [
+                    "法术提升",
+                    "源石技艺强度提升",
+                    "自然伤害提升",
+                    "终结技充能效率提升",
+                    "电磁伤害提升",
+                    "攻击提升",
+                    "灼热伤害提升",
+                    "寒冷伤害提升"
+                ],
+                "attr_3": [
+                    "迸发",
+                    "压制",
+                    "追袭",
+                    "强攻",
+                    "巧技",
+                    "效益",
+                    "粉碎",
+                    "流转"
+                ]
+            },
+            {
+                "location": "重度能量淤积点·源石研究园",
+                "attr_1": [
+                    "敏捷提升",
+                    "力量提升",
+                    "意志提升",
+                    "智识提升",
+                    "主能力提升"
+                ],
+                "attr_2": [
+                    "法术提升",
+                    "自然伤害提升",
+                    "终结技充能效率提升",
+                    "电磁伤害提升",
+                    "攻击提升",
+                    "暴击率提升",
+                    "物理伤害提升",
+                    "寒冷伤害提升"
+                ],
+                "attr_3": [
+                    "医疗",
+                    "压制",
+                    "附术",
+                    "追袭",
+                    "昂扬",
+                    "切骨",
+                    "巧技",
+                    "效益"
+                ]
+            },
+            {
+                "location": "重度能量淤积点·矿脉源区",
+                "attr_1": [
+                    "敏捷提升",
+                    "力量提升",
+                    "意志提升",
+                    "智识提升",
+                    "主能力提升"
+                ],
+                "attr_2": [
+                    "生命提升",
+                    "源石技艺强度提升",
+                    "自然伤害提升",
+                    "治疗效率提升",
+                    "暴击率提升",
+                    "灼热伤害提升",
+                    "物理伤害提升",
+                    "寒冷伤害提升"
+                ],
+                "attr_3": [
+                    "夜幕",
+                    "迸发",
+                    "压制",
+                    "附术",
+                    "强攻",
+                    "巧技",
+                    "效益",
+                    "残暴"
+                ]
+            },
+            {
+                "location": "重度能量淤积点·供能高地",
+                "attr_1": [
+                    "敏捷提升",
+                    "力量提升",
+                    "意志提升",
+                    "智识提升",
+                    "主能力提升"
+                ],
+                "attr_2": [
+                    "生命提升",
+                    "源石技艺强度提升",
+                    "自然伤害提升",
+                    "治疗效率提升",
+                    "攻击提升",
+                    "暴击率提升",
+                    "灼热伤害提升",
+                    "物理伤害提升"
+                ],
+                "attr_3": [
+                    "医疗",
+                    "附术",
+                    "追袭",
+                    "昂扬",
+                    "切骨",
+                    "残暴",
+                    "粉碎",
+                    "流转"
+                ]
+            },
+            {
+                "location": "重度能量淤积点·武陵城",
+                "attr_1": [
+                    "敏捷提升",
+                    "力量提升",
+                    "意志提升",
+                    "智识提升",
+                    "主能力提升"
+                ],
+                "attr_2": [
+                    "生命提升",
+                    "法术提升",
+                    "治疗效率提升",
+                    "终结技充能效率提升",
+                    "电磁伤害提升",
+                    "攻击提升",
+                    "暴击率提升",
+                    "寒冷伤害提升"
+                ],
+                "attr_3": [
+                    "医疗",
+                    "夜幕",
+                    "迸发",
+                    "强攻",
+                    "切骨",
+                    "残暴",
+                    "粉碎",
+                    "流转"
+                ]
+            },
+        ]
+
+        // 存储已选武器的数组
+        let selectedWeapons = [];
+        let currentSolutions = [];
+
+        // DOM元素
+        const weaponsContainer = document.getElementById('weapons-container');
+        const selectedContainer = document.getElementById('selected-container');
+        const emptySelection = document.getElementById('empty-selection');
+        const totalWeaponsElement = document.getElementById('total-weapons');
+        const selectedCountElement = document.getElementById('selected-count');
+        const solutionsCountElement = document.getElementById('solutions-count');
+        const rankFilter = document.getElementById('rank-filter');
+        const attributeFilter = document.getElementById('attribute-filter');
+        const sortBy = document.getElementById('sort-by');
+        const searchWeapon = document.getElementById('search-weapon');
+        const clearAllBtn = document.getElementById('clear-all');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const resultsContainer = document.getElementById('results-container');
+        const noResults = document.getElementById('no-results');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
+
+        // 初始化显示武器
+        function init() {
+            renderWeapons(weaponsData);
+            updateSelectedCount();
+            updateTotalWeaponsCount();
+            updateCalculateButton();
+        }
+
+        // 渲染武器卡片
+        function renderWeapons(weapons) {
+            weaponsContainer.innerHTML = '';
+
+            if (weapons.length === 0) {
+                weaponsContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #777;">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <p>未找到符合条件的武器</p>
+                    </div>
+                `;
+                return;
+            }
+
+            weapons.forEach(weapon => {
+                const isSelected = selectedWeapons.some(selected => selected.name === weapon.name);
+                const weaponCard = document.createElement('div');
+                weaponCard.className = `weapon-card rank-${weapon.rank} ${isSelected ? 'selected' : ''}`;
+                weaponCard.dataset.name = weapon.name;
+
+                // 构建属性字符串
+                const attributes = [];
+                if (weapon.attr_1) attributes.push(weapon.attr_1);
+                if (weapon.attr_2) attributes.push(weapon.attr_2);
+                if (weapon.attr_3) attributes.push(weapon.attr_3);
+
+                weaponCard.innerHTML = `
+                    <div class="weapon-image" style="background-image: url('${weapon.image}')">
+                        <div class="weapon-rank rank-${weapon.rank}">${weapon.rank}★</div>
+                    </div>
+                    <div class="weapon-info">
+                        <div class="weapon-name">${weapon.name}</div>
+                        <div class="weapon-attributes">
+                            ${attributes.map(attr => `<span>${attr}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+
+                weaponCard.addEventListener('click', () => toggleWeaponSelection(weapon));
+                weaponsContainer.appendChild(weaponCard);
+            });
+        }
+
+        // 切换武器选择状态
+        function toggleWeaponSelection(weapon) {
+            const index = selectedWeapons.findIndex(w => w.name === weapon.name);
+
+            if (index === -1) {
+                // 添加武器到已选数组
+                selectedWeapons.push(weapon);
+                showNotification(`已添加 "${weapon.name}"`);
+            } else {
+                // 从已选数组中移除武器
+                selectedWeapons.splice(index, 1);
+                showNotification(`已移除 "${weapon.name}"`);
+            }
+
+            // 更新UI
+            updateWeaponCards();
+            renderSelectedWeapons();
+            updateSelectedCount();
+            updateCalculateButton();
+            clearResults();
+        }
+
+        // 更新武器卡片的选择状态
+        function updateWeaponCards() {
+            document.querySelectorAll('.weapon-card').forEach(card => {
+                const weaponName = card.dataset.name;
+                const isSelected = selectedWeapons.some(weapon => weapon.name === weaponName);
+
+                if (isSelected) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+        }
+
+        // 渲染已选武器列表
+        function renderSelectedWeapons() {
+            if (selectedWeapons.length === 0) {
+                emptySelection.style.display = 'block';
+                selectedContainer.innerHTML = '';
+                selectedContainer.appendChild(emptySelection);
+                return;
+            }
+
+            emptySelection.style.display = 'none';
+            selectedContainer.innerHTML = '';
+
+            selectedWeapons.forEach((weapon, index) => {
+                const selectedItem = document.createElement('div');
+                selectedItem.className = `selected-item rank-${weapon.rank}`;
+
+                selectedItem.innerHTML = `
+                    <div class="selected-item-img" style="background-image: url('${weapon.image}')"></div>
+                    <div class="selected-item-info">
+                        <div class="selected-item-name">${weapon.name}</div>
+                        <div class="selected-item-rank">${weapon.rank}星武器</div>
+                        <div class="selected-item-attributes">
+                            ${[weapon.attr_1, weapon.attr_2, weapon.attr_3]
+                        .filter(attr => attr)
+                        .map(attr => `<span style="color: white; font-size: 0.8rem; background: rgba(106, 183, 255, 0.1); padding: 2px 6px; border-radius: 3px; margin-right: 5px;">${attr}</span>`)
+                        .join('')}
+                        </div>
+                    </div>
+                    <button class="remove-btn" data-index="${index}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                selectedContainer.appendChild(selectedItem);
+            });
+
+            // 为移除按钮添加事件监听器
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const index = parseInt(btn.dataset.index);
+                    const weaponName = selectedWeapons[index].name;
+                    selectedWeapons.splice(index, 1);
+                    showNotification(`已移除 "${weaponName}"`);
+                    updateWeaponCards();
+                    renderSelectedWeapons();
+                    updateSelectedCount();
+                    updateCalculateButton();
+                    clearResults();
+                });
+            });
+        }
+
+        // 更新已选武器数量
+        function updateSelectedCount() {
+            selectedCountElement.textContent = selectedWeapons.length;
+        }
+
+        // 更新武器总数
+        function updateTotalWeaponsCount() {
+            totalWeaponsElement.textContent = weaponsData.length;
+        }
+
+        // 更新计算按钮状态
+        function updateCalculateButton() {
+            if (selectedWeapons.length > 0) {
+                calculateBtn.disabled = false;
+            } else {
+                calculateBtn.disabled = true;
+            }
+        }
+
+        // 筛选和排序武器
+        function filterAndSortWeapons() {
+            let filteredWeapons = [...weaponsData];
+
+            // 按星级筛选
+            const rankValue = rankFilter.value;
+            if (rankValue !== 'all') {
+                filteredWeapons = filteredWeapons.filter(weapon => weapon.rank === parseInt(rankValue));
+            }
+
+            // 按属性筛选
+            const attributeValue = attributeFilter.value;
+            if (attributeValue !== 'all') {
+                filteredWeapons = filteredWeapons.filter(weapon =>
+                    weapon.attr_1 === attributeValue ||
+                    weapon.attr_2 === attributeValue ||
+                    weapon.attr_3 === attributeValue
+                );
+            }
+
+            // 按搜索词筛选
+            const searchValue = searchWeapon.value.toLowerCase().trim();
+            if (searchValue) {
+                filteredWeapons = filteredWeapons.filter(weapon =>
+                    weapon.name.toLowerCase().includes(searchValue)
+                );
+            }
+
+            // 排序
+            const sortValue = sortBy.value;
+            if (sortValue === 'name') {
+                filteredWeapons.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+            } else if (sortValue === 'rank') {
+                filteredWeapons.sort((a, b) => b.rank - a.rank);
+            }
+
+            renderWeapons(filteredWeapons);
+        }
+
+        // 显示通知
+        function showNotification(message, isError = false) {
+            notificationText.textContent = message;
+            notification.classList.remove('error');
+
+            if (isError) {
+                notification.classList.add('error');
+            }
+
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 清空所有选择
+        function clearAllSelections() {
+            if (selectedWeapons.length === 0) {
+                showNotification("当前没有选择任何武器", true);
+                return;
+            }
+
+            selectedWeapons = [];
+            updateWeaponCards();
+            renderSelectedWeapons();
+            updateSelectedCount();
+            updateCalculateButton();
+            clearResults();
+            showNotification("已清空所有选择");
+        }
+
+        // 清空结果
+        function clearResults() {
+            resultsContainer.innerHTML = '';
+            noResults.style.display = 'block';
+            resultsContainer.appendChild(noResults);
+            solutionsCountElement.textContent = '0';
+        }
+
+        // 计算符合条件的方案
+        function calculateSolutions() {
+            if (selectedWeapons.length === 0) {
+                showNotification("请先选择武器", true);
+                return;
+            }
+
+            // 重置结果
+            clearResults();
+
+            // 存储符合条件的方案
+            const validSolutions = [];
+
+            // 尝试从大到小查找符合条件的最大组合
+            // 首先从所有武器的最大组合开始尝试
+            for (let subsetSize = selectedWeapons.length; subsetSize >= 1; subsetSize--) {
+                const subsets = getSubsetsOfSize(selectedWeapons, subsetSize);
+
+                subsets.forEach(subset => {
+                    // 条件1: 主属性(attr_1)种类不能超过3个
+                    const mainAttrs = new Set();
+                    subset.forEach(weapon => {
+                        if (weapon.attr_1) {
+                            mainAttrs.add(weapon.attr_1);
+                        }
+                    });
+
+                    if (mainAttrs.size > 3) {
+                        return; // 不符合条件，跳过
+                    }
+
+                    // 条件2: 所有武器有相同的attr_2或attr_3
+                    let commonAttr2 = null;
+                    let commonAttr3 = null;
+                    let hasCommonAttr2 = true;
+                    let hasCommonAttr3 = true;
+
+                    subset.forEach((weapon, index) => {
+                        if (index === 0) {
+                            commonAttr2 = weapon.attr_2;
+                            commonAttr3 = weapon.attr_3;
+                        } else {
+                            if (weapon.attr_2 !== commonAttr2) {
+                                hasCommonAttr2 = false;
+                            }
+                            if (weapon.attr_3 !== commonAttr3) {
+                                hasCommonAttr3 = false;
+                            }
+                        }
+                    });
+
+                    // 如果attr_2或attr_3为空，不能作为共同属性
+                    if (commonAttr2 === "") hasCommonAttr2 = false;
+                    if (commonAttr3 === "") hasCommonAttr3 = false;
+
+                    if (!hasCommonAttr2 && !hasCommonAttr3) {
+                        return; // 不符合条件，跳过
+                    }
+
+                    // 查找匹配的刷取地点
+                    const matchedLocations = findMatchingLocations(subset);
+
+                    if (matchedLocations.length === 0) {
+                        return; // 没有匹配的刷取地点，跳过
+                    }
+
+                    // 检查这个方案是否已经被包含在其他方案中
+                    const isSubsetOfExisting = validSolutions.some(existingSolution =>
+                        isSubset(subset, existingSolution.weapons)
+                    );
+
+                    if (!isSubsetOfExisting) {
+                        // 找到符合条件的方案
+                        validSolutions.push({
+                            weapons: subset,
+                            mainAttrs: Array.from(mainAttrs),
+                            commonAttr2: hasCommonAttr2 ? commonAttr2 : null,
+                            commonAttr3: hasCommonAttr3 ? commonAttr3 : null,
+                            locations: matchedLocations
+                        });
+                    }
+                });
+
+                // 如果找到了足够多的方案，可以提前停止搜索更小的组合
+                if (validSolutions.length > 0 && subsetSize <= 3) {
+                    break;
+                }
+            }
+
+            // 按武器数量排序（数量多的在前）
+            validSolutions.sort((a, b) => b.weapons.length - a.weapons.length);
+
+            // 保存解决方案
+            currentSolutions = validSolutions;
+
+            // 显示结果
+            displaySolutions(validSolutions);
+        }
+
+        // 获取指定大小的所有子集
+        function getSubsetsOfSize(arr, size) {
+            const subsets = [];
+            const n = arr.length;
+
+            // 生成所有组合
+            function backtrack(start, current) {
+                if (current.length === size) {
+                    subsets.push([...current]);
+                    return;
+                }
+
+                for (let i = start; i < n; i++) {
+                    current.push(arr[i]);
+                    backtrack(i + 1, current);
+                    current.pop();
+                }
+            }
+
+            backtrack(0, []);
+            return subsets;
+        }
+
+        // 检查subsetA是否是subsetB的子集
+        function isSubset(subsetA, subsetB) {
+            // 如果subsetA比subsetB大，不可能是子集
+            if (subsetA.length > subsetB.length) return false;
+
+            // 将武器名称转换为集合进行比较
+            const setA = new Set(subsetA.map(w => w.name));
+            const setB = new Set(subsetB.map(w => w.name));
+
+            for (const weaponName of setA) {
+                if (!setB.has(weaponName)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 查找匹配的刷取地点
+        function findMatchingLocations(weapons) {
+            const matchedLocations = [];
+
+            locationsData.forEach(location => {
+                let isMatched = true;
+
+                // 检查每件武器的属性是否都在地点属性范围内
+                for (const weapon of weapons) {
+                    // 检查attr_1
+                    if (weapon.attr_1 && !location.attr_1.includes(weapon.attr_1)) {
+                        isMatched = false;
+                        break;
+                    }
+
+                    // 检查attr_2（如果有值）
+                    if (weapon.attr_2 && weapon.attr_2 !== "" && !location.attr_2.includes(weapon.attr_2)) {
+                        isMatched = false;
+                        break;
+                    }
+
+                    // 检查attr_3（如果有值）
+                    if (weapon.attr_3 && weapon.attr_3 !== "" && !location.attr_3.includes(weapon.attr_3)) {
+                        isMatched = false;
+                        break;
+                    }
+                }
+
+                if (isMatched) {
+                    matchedLocations.push(location.location);
+                }
+            });
+
+            return matchedLocations;
+        }
+
+        // 显示解决方案
+        function displaySolutions(solutions) {
+            resultsContainer.innerHTML = '';
+
+            if (solutions.length === 0) {
+                noResults.style.display = 'block';
+                noResults.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>找不到满足条件的基质刷取点</p>
+                    <p>请调整武器选择后重试</p>
+                `;
+                resultsContainer.appendChild(noResults);
+                solutionsCountElement.textContent = '0';
+                return;
+            }
+
+            noResults.style.display = 'none';
+            solutionsCountElement.textContent = solutions.length;
+
+            solutions.forEach((solution, index) => {
+                const solutionElement = document.createElement('div');
+                solutionElement.className = 'solution';
+
+                // 确定共同属性
+                let commonAttrText = '';
+                if (solution.commonAttr2 && solution.commonAttr3) {
+                    // 理论上不会同时满足，但以防万一
+                    commonAttrText = `<div class="solution-attr-title">附加属性:</div>
+                            <div>${solution.commonAttr2}</div>
+                            <div class="solution-attr-title">技能属性:</div>
+                            <div>${solution.commonAttr3}</div>`;
+                } else if (solution.commonAttr2) {
+                    commonAttrText = `<div class="solution-attr-title">附加属性:</div>
+                            <div>${solution.commonAttr2}</div>`
+                } else if (solution.commonAttr3) {
+                    commonAttrText = `<div class="solution-attr-title">技能属性:</div>
+                            <div>${solution.commonAttr3}</div>`;
+                }
+
+                // 构建武器列表HTML
+                const weaponsHtml = solution.weapons.map(weapon => `
+                    <div class="solution-weapon">
+                        <img src="${weapon.image}" alt="${weapon.name}">
+                        <span>${weapon.name} (${weapon.rank}★)</span>
+                    </div>
+                `).join('');
+
+                // 构建地点列表HTML
+                const locationsHtml = solution.locations.map(location => `
+                    <div class="solution-location">${location}</div>
+                `).join('');
+
+                solutionElement.innerHTML = `
+                    <div class="solution-title">方案 ${index + 1} - ${solution.weapons.length}件武器</div>
+                    <div class="solution-content">
+                        <div class="solution-attr">
+                            <div class="solution-attr-title">主属性 (${solution.mainAttrs.length}种):</div>
+                            <div>${solution.mainAttrs.join(', ')}</div>
+                            ${commonAttrText}
+                        </div>
+                        </div>
+                        <div class="solution-attr">
+                            <div class="solution-attr-title">包含的武器 (${solution.weapons.length}件):</div>
+                            <div class="solution-weapons">${weaponsHtml}</div>
+                        </div>
+                        <div class="solution-attr">
+                            <div class="solution-attr-title">可刷取地点 (${solution.locations.length}个):</div>
+                            <div class="solution-locations">${locationsHtml}</div>
+                        </div>
+                    </div>
+                `;
+
+                resultsContainer.appendChild(solutionElement);
+            });
+
+            showNotification(`找到 ${solutions.length} 个满足条件的方案`);
+        }
+
+        // 事件监听器
+        rankFilter.addEventListener('change', filterAndSortWeapons);
+        attributeFilter.addEventListener('change', filterAndSortWeapons);
+        sortBy.addEventListener('change', filterAndSortWeapons);
+        searchWeapon.addEventListener('input', filterAndSortWeapons);
+        clearAllBtn.addEventListener('click', clearAllSelections);
+        calculateBtn.addEventListener('click', calculateSolutions);
+
+        // 初始化应用
+        init();
+    </script>
+</body>
+
+</html>
